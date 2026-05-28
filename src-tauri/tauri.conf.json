@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' https://runikapp.com https://*.runikapp.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://runikapp.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://runikapp.com; img-src 'self' https://runikapp.com data: blob:; connect-src 'self' https://runikapp.com https://*.runikapp.com; font-src 'self' https://runikapp.com data:; frame-src 'none'"
     }
   },
   "bundle": {
