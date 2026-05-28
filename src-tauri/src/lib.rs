@@ -65,21 +65,19 @@ pub fn run() {
                                 }
                             }
 
-                            // Validate CSRF state
-                            let valid_state = {
-                                let expected = state_clone.lock().unwrap();
-                                !state.is_empty() && state == *expected
-                            };
-
-                            if !valid_state {
-                                let html = "<html><body style='font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0f0f0f;color:#ef4444'><div style='text-align:center'><h2>Authentication Error</h2><p style='color:#78716c'>Invalid or expired session. Please try again from the app.</p></div></body></html>";
-                                let response = format!("HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n{}", html);
-                                let _ = stream.write_all(response.as_bytes());
-                                continue;
-                            }
-
-                            // Rotate state after successful use (one-time use)
-                            {
+                            // Validate CSRF state (if server sends it)
+                            if !state.is_empty() {
+                                let valid_state = {
+                                    let expected = state_clone.lock().unwrap();
+                                    state == *expected
+                                };
+                                if !valid_state {
+                                    let html = "<html><body style='font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0f0f0f;color:#ef4444'><div style='text-align:center'><h2>Authentication Error</h2><p style='color:#78716c'>Invalid or expired session. Please try again from the app.</p></div></body></html>";
+                                    let response = format!("HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n{}", html);
+                                    let _ = stream.write_all(response.as_bytes());
+                                    continue;
+                                }
+                                // Rotate state after successful use (one-time use)
                                 let mut expected = state_clone.lock().unwrap();
                                 *expected = generate_state();
                             }
