@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://runikapp.com/*"]
+  },
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "core:event:allow-emit",
+    "core:event:allow-listen"
+  ]
+}
