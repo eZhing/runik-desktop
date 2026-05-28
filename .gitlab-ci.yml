@@ -1,0 +1,21 @@
+stages:
+  - build
+
+build-windows:
+  stage: build
+  tags:
+    - saas-windows-medium-amd64
+  rules:
+    - when: manual
+  script:
+    - choco install nodejs-lts rust-ms -y --no-progress
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - node --version
+    - rustc --version
+    - npm install
+    - npx tauri build
+  artifacts:
+    paths:
+      - src-tauri/target/release/bundle/nsis/*.exe
+      - src-tauri/target/release/bundle/msi/*.msi
+    expire_in: 30 days
