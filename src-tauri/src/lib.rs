@@ -35,6 +35,15 @@ pub fn run() {
         .setup(move |app| {
             let handle = Arc::new(app.handle().clone());
 
+            // Pass CSRF state to WebView via URL fragment so ConnectScreen can read it
+            {
+                let state_val = expected_state.lock().unwrap().clone();
+                if let Some(window) = app.get_webview_window("main") {
+                    let url = format!("https://runikapp.com/app/#csrf_state={}", state_val);
+                    let _ = window.navigate(url.parse().unwrap());
+                }
+            }
+
             // Start local HTTP server to receive OAuth callback
             let handle_clone = handle.clone();
             let state_clone = expected_state.clone();
