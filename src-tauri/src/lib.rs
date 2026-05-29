@@ -18,14 +18,22 @@ fn open_in_browser(url: String) {
     }
 }
 
+#[tauri::command]
+fn get_csrf_state(state: tauri::State<'_, Arc<Mutex<String>>>) -> String {
+    state.lock().unwrap().clone()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let expected_state = Arc::new(Mutex::new(generate_state()));
+    let managed_state = expected_state.clone();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![open_in_browser])
-        .setup(|app| {
+        .manage(managed_state)
+        .invoke_handler(tauri::generate_handler![open_in_browser, get_csrf_state])
+        .setup(move |app| {
             let handle = Arc::new(app.handle().clone());
-            let expected_state = Arc::new(Mutex::new(generate_state()));
 
             // Start local HTTP server to receive OAuth callback
             let handle_clone = handle.clone();
