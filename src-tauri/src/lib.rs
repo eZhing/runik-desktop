@@ -6,9 +6,9 @@ use std::net::TcpListener;
 const AUTH_PORT: u16 = 17291;
 
 fn generate_state() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
-    format!("{:x}", seed)
+    let mut buf = [0u8; 32];
+    getrandom::fill(&mut buf).expect("failed to generate random state");
+    buf.iter().map(|b| format!("{:02x}", b)).collect()
 }
 
 #[tauri::command]
@@ -65,8 +65,14 @@ pub fn run() {
                                 }
                             }
 
-                            // Validate CSRF state (if server sends it)
-                            if !state.is_empty() {
+                            // Validate CSRF state (always required)
+                            if state.is_empty() {
+                                let html = "<html><body style='font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0f0f0f;color:#ef4444'><div style='text-align:center'><h2>Authentication Error</h2><p style='color:#78716c'>Missing security state. Please try again from the app.</p></div></body></html>";
+                                let response = format!("HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n{}", html);
+                                let _ = stream.write_all(response.as_bytes());
+                                continue;
+                            }
+                            {
                                 let valid_state = {
                                     let expected = state_clone.lock().unwrap();
                                     state == *expected
